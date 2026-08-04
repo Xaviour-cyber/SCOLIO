@@ -1,0 +1,34 @@
+# Virtual Environments
+.venv/
+scolio-venv/
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# YOLO Model Weights & Runs
+*.pt
+yolo26n-pose.pt
+runs/
+
+# IDE & OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs & Data (Jika nanti ada fitur logging)
+logs/
+*.csv
+
+# Media & Videos (Terlalu besar untuk GitHub)
+*.mp4
+*.avi
+*.mov
+*.mkv
+VID_*.mp4
