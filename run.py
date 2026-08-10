@@ -20,6 +20,7 @@ import copy
 from src.camera import ThreadedCamera
 from src.detector import PoseDetector
 from src.alert import PostureAlertSystem, PostureState
+from src.logger import SessionLogger
 from src.overlay import (
     draw_skeleton,
     draw_status_panel,
@@ -35,7 +36,7 @@ WINDOW_NAME = "Scolio-Scan | Monitoring Postur"
 # Ganti IP sesuai yang tampil di app DroidCam HP kamu
 # Untuk webcam biasa, ganti ke: CAMERA_SOURCE = 0
 # Untuk video file, ganti ke: CAMERA_SOURCE = "video.mp4"
-CAMERA_SOURCE = "VID_20260623_210838.mp4"
+CAMERA_SOURCE = "VID_20260808_093211.mp4"
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 MAX_DISPLAY_HEIGHT = 720     # Batas tinggi tampilan agar muat di layar
@@ -125,6 +126,16 @@ def main():
     print("=" * 50)
     print()
 
+    # ── Input Data Siswa ─────────────────────────────────────
+    print("─" * 50)
+    student_id = input("  Masukkan Nama/ID Siswa : ").strip() or "unknown"
+    try:
+        screen_time = float(input("  Screen Time Harian (Menit) : ").strip() or "0")
+    except ValueError:
+        screen_time = 0.0
+    print("─" * 50)
+    print()
+
     # ── Cek Tipe Sumber Video ────────────────────────────────
     is_video_file = False
     if isinstance(CAMERA_SOURCE, str) and os.path.exists(CAMERA_SOURCE):
@@ -177,6 +188,9 @@ def main():
     alert_system.start_calibration()
     print("[INFO] Memulai kalibrasi — Duduk tegak dan menghadap kamera!")
     print()
+
+    # ── Inisialisasi Data Logger ──────────────────────────────
+    logger = SessionLogger(student_id=student_id, screen_time_min=screen_time)
 
     # ── Variabel loop ────────────────────────────────────────
     display_fps = 0.0
@@ -231,17 +245,23 @@ def main():
 
                 # Update sistem alert
                 state, angle, elapsed = alert_system.update(last_keypoints)
+                active_mode = alert_system.get_active_mode()
 
                 # Gambar UI berdasarkan state
                 if state == PostureState.CALIBRATING:
                     remaining = alert_system.get_calibration_remaining()
                     frame = draw_calibration_overlay(frame, remaining)
-                    frame = draw_status_panel(frame, state, 0.0, 0.0, display_fps)
+                    frame = draw_status_panel(frame, state, 0.0, 0.0, display_fps,
+                                              detection_mode=active_mode)
                 else:
-                    frame = draw_status_panel(frame, state, angle, elapsed, display_fps)
+                    frame = draw_status_panel(frame, state, angle, elapsed, display_fps,
+                                              detection_mode=active_mode)
                     # Timer bar
                     progress = alert_system.get_timer_progress()
                     frame = draw_timer_bar(frame, progress)
+
+                    # ── Catat data ke logger ──────────────
+                    logger.log(angle, state.value, active_mode)
             else:
                 # Tidak ada deteksi — tampilkan status informatif
                 frame = draw_status_panel(
@@ -298,6 +318,10 @@ def main():
         elif camera is not None:
             camera.release()
         cv2.destroyAllWindows()
+
+        # ── Generate laporan & grafik otomatis ────────────
+        logger.close_and_report()
+
         print("[OK] Scolio-Scan ditutup dengan bersih.")
 
 

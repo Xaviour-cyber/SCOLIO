@@ -3,6 +3,10 @@ alert.py — Modul Thresholding, State Machine, dan Kalibrasi
 
 Mengelola kondisi postur (NORMAL/WARNING/ALERT) dan
 auto-kalibrasi posisi duduk tegak sebagai referensi nol.
+
+Mendukung dua mode deteksi:
+  - FULL_BODY  : Menggunakan sudut spine (neck → mid_hip)
+  - UPPER_BODY : Menggunakan sudut komposit (kemiringan bahu + kepala)
 """
 
 import time
@@ -10,7 +14,11 @@ import winsound
 from enum import Enum
 from dataclasses import dataclass, field
 
-from .geometry import calculate_spine_angle, calculate_relative_angle
+from .geometry import (
+    calculate_spine_angle,
+    calculate_relative_angle,
+    calculate_composite_upper_body_angle,
+)
 
 
 class PostureState(Enum):
@@ -25,9 +33,12 @@ class PostureState(Enum):
 class CalibrationData:
     """Data kalibrasi posisi duduk tegak."""
     baseline_spine_angle: float = 0.0
+    baseline_upper_body_angle: float = 0.0
     baseline_shoulder_tilt: float = 0.0
     is_calibrated: bool = False
-    samples: list = field(default_factory=list)
+    samples_spine: list = field(default_factory=list)
+    samples_upper: list = field(default_factory=list)
+    detection_mode: str = ""  # Mode yang digunakan saat kalibrasi
 
 
 class PostureAlertSystem:
@@ -80,6 +91,9 @@ class PostureAlertSystem:
         # Audio
         self._last_beep_time: float = 0.0
 
+        # Mode deteksi aktif
+        self._active_mode: str = ""
+
     def start_calibration(self):
         """Mulai proses kalibrasi."""
         self.state = PostureState.CALIBRATING
@@ -89,6 +103,7 @@ class PostureAlertSystem:
         self._bad_posture_elapsed = 0.0
         self._consecutive_good = 0
         self._consecutive_bad = 0
+        self._active_mode = ""
 
     def get_calibration_remaining(self) -> float:
         """Sisa waktu kalibrasi dalam detik."""
@@ -97,6 +112,35 @@ class PostureAlertSystem:
         elapsed = time.time() - self.calibration_start_time
         remaining = self.calibration_duration - elapsed
         return max(0.0, remaining)
+
+    def get_active_mode(self) -> str:
+        """Kembalikan mode deteksi yang sedang aktif."""
+        return self._active_mode
+
+    def _compute_angle(self, keypoints: dict) -> tuple[float, str]:
+        """
+        Hitung sudut postur berdasarkan mode deteksi.
+
+        Args:
+            keypoints: Dictionary keypoint dari PoseDetector
+
+        Returns:
+            Tuple (angle, mode) — sudut saat ini dan mode yang digunakan
+        """
+        mode = keypoints.get("detection_mode", "full_body")
+
+        if mode == "full_body":
+            angle = calculate_spine_angle(keypoints["neck"], keypoints["mid_hip"])
+        else:
+            # Upper body mode — gunakan sudut komposit
+            angle = calculate_composite_upper_body_angle(
+                keypoints["nose"],
+                keypoints["neck"],
+                keypoints["left_shoulder"],
+                keypoints["right_shoulder"],
+            )
+
+        return angle, mode
 
     def update_calibration(self, keypoints: dict) -> bool:
         """
@@ -115,19 +159,35 @@ class PostureAlertSystem:
             self.calibration_start_time = time.time()
 
         # Kumpulkan sampel sudut
-        spine_angle = calculate_spine_angle(keypoints["neck"], keypoints["mid_hip"])
-        self.calibration.samples.append(spine_angle)
+        angle, mode = self._compute_angle(keypoints)
+
+        if mode == "full_body":
+            self.calibration.samples_spine.append(angle)
+        else:
+            self.calibration.samples_upper.append(angle)
+
+        # Catat mode terakhir yang digunakan
+        self.calibration.detection_mode = mode
 
         # Periksa apakah durasi kalibrasi sudah habis
         elapsed = time.time() - self.calibration_start_time
         if elapsed >= self.calibration_duration:
             # Hitung rata-rata sebagai baseline
-            if self.calibration.samples:
+            if self.calibration.samples_spine:
                 self.calibration.baseline_spine_angle = (
-                    sum(self.calibration.samples) / len(self.calibration.samples)
+                    sum(self.calibration.samples_spine)
+                    / len(self.calibration.samples_spine)
                 )
+            if self.calibration.samples_upper:
+                self.calibration.baseline_upper_body_angle = (
+                    sum(self.calibration.samples_upper)
+                    / len(self.calibration.samples_upper)
+                )
+
             self.calibration.is_calibrated = True
+            self._active_mode = self.calibration.detection_mode
             self.state = PostureState.NORMAL
+            print(f"[OK] Kalibrasi selesai. Mode: {self._active_mode}")
             return True
 
         return False
@@ -148,12 +208,17 @@ class PostureAlertSystem:
             return self.state, 0.0, 0.0
 
         # Hitung sudut saat ini
-        current_angle = calculate_spine_angle(keypoints["neck"], keypoints["mid_hip"])
+        current_angle, mode = self._compute_angle(keypoints)
+        self._active_mode = mode
+
+        # Pilih baseline yang sesuai
+        if mode == "full_body":
+            baseline = self.calibration.baseline_spine_angle
+        else:
+            baseline = self.calibration.baseline_upper_body_angle
 
         # Hitung sudut relatif terhadap baseline
-        relative_angle = calculate_relative_angle(
-            current_angle, self.calibration.baseline_spine_angle
-        )
+        relative_angle = calculate_relative_angle(current_angle, baseline)
 
         # Evaluasi apakah postur buruk
         is_bad_posture = relative_angle > self.angle_threshold

@@ -127,7 +127,8 @@ def draw_skeleton(frame: np.ndarray, keypoints: dict, confidences: np.ndarray = 
 
 def draw_status_panel(frame: np.ndarray, state: PostureState,
                       angle: float, elapsed: float,
-                      fps: float = 0.0) -> np.ndarray:
+                      fps: float = 0.0,
+                      detection_mode: str = "") -> np.ndarray:
     """
     Gambar panel status di bagian atas frame.
     Ukuran font dan layout adaptif terhadap dimensi frame.
@@ -202,7 +203,14 @@ def draw_status_panel(frame: np.ndarray, state: PostureState,
     # ── Baris 2: Sudut (kiri) + Durasi (kanan) ──
     row2_y = row1_y + _scale(25, h)
 
-    angle_text = f"Sudut: {angle:.1f} deg"
+    # Mode deteksi (jika tersedia)
+    mode_label = ""
+    if detection_mode == "upper_body":
+        mode_label = " [Upper Body]"
+    elif detection_mode == "full_body":
+        mode_label = " [Full Body]"
+
+    angle_text = f"Sudut: {angle:.1f} deg{mode_label}"
     cv2.putText(frame, angle_text, (margin, row2_y),
                 FONT, info_scale, COLOR_WHITE, info_thick, cv2.LINE_AA)
 

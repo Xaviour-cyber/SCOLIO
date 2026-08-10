@@ -107,3 +107,39 @@ def calculate_relative_angle(current_angle: float, baseline_angle: float) -> flo
         Selisih sudut (derajat, selalu positif).
     """
     return round(abs(current_angle - baseline_angle), 2)
+
+
+def calculate_composite_upper_body_angle(
+    nose: tuple, neck: tuple,
+    left_shoulder: tuple, right_shoulder: tuple,
+) -> float:
+    """
+    Menghitung sudut deviasi postur komposit dari upper body saja.
+
+    Digunakan ketika pinggul tidak terdeteksi oleh kamera (misalnya
+    saat pengguna duduk dekat dengan webcam laptop).
+
+    Rumus:
+        θ_shoulder = |atan2(Δy_bahu, Δx_bahu)|   → kemiringan bahu
+        θ_head     = atan2(|Δx_nose|, |Δy_nose|)  → kemiringan kepala lateral
+        θ_composite = max(θ_shoulder, θ_head)
+
+    Mengambil nilai MAKSIMUM dari kedua indikator, karena:
+    - Jika bahu miring ≥ threshold → postur buruk (indikasi skoliosis)
+    - Jika kepala miring ≥ threshold → postur buruk (indikasi text neck)
+    - Cukup salah satu yang melebihi batas untuk memicu peringatan.
+
+    Args:
+        nose: Tuple (x, y) posisi hidung
+        neck: Tuple (x, y) posisi leher (titik tengah bahu)
+        left_shoulder: Tuple (x, y) posisi bahu kiri
+        right_shoulder: Tuple (x, y) posisi bahu kanan
+
+    Returns:
+        Sudut deviasi komposit dalam derajat (selalu positif). 0° = tegak.
+    """
+    shoulder_tilt = abs(calculate_shoulder_tilt(left_shoulder, right_shoulder))
+    head_tilt = calculate_head_tilt(nose, neck)
+
+    composite = max(shoulder_tilt, head_tilt)
+    return round(composite, 2)

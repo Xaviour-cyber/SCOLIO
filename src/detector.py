@@ -3,6 +3,10 @@ detector.py — Modul Deteksi Pose YOLO & Ekstraksi Keypoint
 
 Memuat model YOLOv26-Pose Nano dan mengekstrak keypoint anatomi
 dari setiap frame video untuk analisis postur tulang belakang.
+
+Mendukung dua mode deteksi:
+  - FULL_BODY  : Semua keypoint postur terdeteksi (termasuk pinggul)
+  - UPPER_BODY : Hanya kepala + bahu terdeteksi (pinggul tidak terlihat)
 """
 
 from ultralytics import YOLO
@@ -30,8 +34,11 @@ COCO_KEYPOINT_INDICES = {
     "right_ankle": 16,
 }
 
-# Keypoint yang kita butuhkan untuk analisis postur
-POSTURE_KEYPOINTS = ["nose", "left_shoulder", "right_shoulder", "left_hip", "right_hip"]
+# Keypoint wajib untuk full body mode
+FULL_BODY_KEYPOINTS = ["nose", "left_shoulder", "right_shoulder", "left_hip", "right_hip"]
+
+# Keypoint wajib untuk upper body mode (fallback)
+UPPER_BODY_KEYPOINTS = ["nose", "left_shoulder", "right_shoulder"]
 
 # Threshold confidence minimum untuk keypoint
 MIN_CONFIDENCE = 0.5
@@ -62,13 +69,14 @@ class PoseDetector:
             Dictionary berisi keypoint terstruktur, atau None jika tidak terdeteksi.
             Format:
             {
+                "detection_mode": "full_body" | "upper_body",
                 "nose": (x, y),
                 "neck": (x, y),           # Diturunkan dari bahu
                 "left_shoulder": (x, y),
                 "right_shoulder": (x, y),
-                "left_hip": (x, y),
-                "right_hip": (x, y),
-                "mid_hip": (x, y),         # Titik tengah pinggul
+                "left_hip": (x, y),        # Hanya ada di mode full_body
+                "right_hip": (x, y),       # Hanya ada di mode full_body
+                "mid_hip": (x, y),         # Hanya ada di mode full_body
                 "all_keypoints": np.array,  # Semua 17 keypoints mentah
                 "all_confidences": np.array # Semua 17 confidence scores
             }
@@ -108,36 +116,64 @@ class PoseDetector:
         coords = person_kps[:, :2]       # (17, 2) — x, y
         confidences = person_kps[:, 2]   # (17,)   — confidence
 
-        # Validasi keypoint yang kita butuhkan
         extracted = {}
-        valid = True
 
-        for name in POSTURE_KEYPOINTS:
+        # ── Coba Full Body Mode dulu ─────────────────────────
+        full_body_valid = True
+        for name in FULL_BODY_KEYPOINTS:
             idx = COCO_KEYPOINT_INDICES[name]
             conf = confidences[idx]
-
             if conf < MIN_CONFIDENCE:
-                valid = False
+                full_body_valid = False
                 break
-
             extracted[name] = (float(coords[idx][0]), float(coords[idx][1]))
 
-        if not valid:
+        if full_body_valid:
+            # Full body mode — semua keypoint termasuk pinggul tersedia
+            extracted["detection_mode"] = "full_body"
+
+            # Turunkan "neck" = titik tengah kedua bahu
+            lsh = extracted["left_shoulder"]
+            rsh = extracted["right_shoulder"]
+            extracted["neck"] = ((lsh[0] + rsh[0]) / 2, (lsh[1] + rsh[1]) / 2)
+
+            # Turunkan "mid_hip" = titik tengah kedua pinggul
+            lhip = extracted["left_hip"]
+            rhip = extracted["right_hip"]
+            extracted["mid_hip"] = ((lhip[0] + rhip[0]) / 2, (lhip[1] + rhip[1]) / 2)
+
+            # Simpan data mentah
+            extracted["all_keypoints"] = coords
+            extracted["all_confidences"] = confidences
+
+            return extracted
+
+        # ── Fallback: Upper Body Mode ────────────────────────
+        extracted = {}  # Reset
+        upper_body_valid = True
+        for name in UPPER_BODY_KEYPOINTS:
+            idx = COCO_KEYPOINT_INDICES[name]
+            conf = confidences[idx]
+            if conf < MIN_CONFIDENCE:
+                upper_body_valid = False
+                break
+            extracted[name] = (float(coords[idx][0]), float(coords[idx][1]))
+
+        if not upper_body_valid:
             return None
 
-        # Turunkan posisi "leher" = titik tengah kedua bahu
+        # Upper body mode — hanya kepala + bahu
+        extracted["detection_mode"] = "upper_body"
+
+        # Turunkan "neck" = titik tengah kedua bahu
         lsh = extracted["left_shoulder"]
         rsh = extracted["right_shoulder"]
-        neck = ((lsh[0] + rsh[0]) / 2, (lsh[1] + rsh[1]) / 2)
-        extracted["neck"] = neck
+        extracted["neck"] = ((lsh[0] + rsh[0]) / 2, (lsh[1] + rsh[1]) / 2)
 
-        # Turunkan "mid_hip" = titik tengah kedua pinggul
-        lhip = extracted["left_hip"]
-        rhip = extracted["right_hip"]
-        mid_hip = ((lhip[0] + rhip[0]) / 2, (lhip[1] + rhip[1]) / 2)
-        extracted["mid_hip"] = mid_hip
+        # Tidak ada mid_hip di mode ini
+        extracted["mid_hip"] = None
 
-        # Simpan data mentah juga
+        # Simpan data mentah
         extracted["all_keypoints"] = coords
         extracted["all_confidences"] = confidences
 

@@ -59,5 +59,5 @@ echo     3. Ketik: python run.py
 echo.
 echo   Atau langsung jalankan: run_app.bat
 echo.
-echo
-echo
+echo.
+pause
