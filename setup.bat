@@ -38,6 +38,7 @@ REM Aktivasi dan install dependensi
 echo [INFO] Menginstall dependensi (ini bisa memakan waktu 5-15 menit)...
 echo [INFO] Pastikan koneksi internet stabil.
 echo.
+.venv\Scripts\python.exe -m pip install --upgrade pip
 .venv\Scripts\pip.exe install -r requirements.txt
 if %errorlevel% neq 0 (
     echo.
