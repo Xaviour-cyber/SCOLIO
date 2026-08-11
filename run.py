@@ -37,7 +37,7 @@ WINDOW_NAME = "Scolio-Scan | Monitoring Postur"
 # Ganti IP sesuai yang tampil di app DroidCam HP kamu
 # Untuk webcam biasa, ganti ke: CAMERA_SOURCE = 0
 # Untuk video file, ganti ke: CAMERA_SOURCE = "video.mp4"
-CAMERA_SOURCE = "VID_20260808_093211.mp4"
+CAMERA_SOURCE = "VID_20260623_210838.mp4"
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 MAX_DISPLAY_HEIGHT = 720     # Batas tinggi tampilan agar muat di layar
