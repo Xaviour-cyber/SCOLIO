@@ -8,6 +8,7 @@ Menjalankan pipeline lengkap dengan arsitektur multi-thread:
 Kontrol:
   - Tekan Q untuk keluar
   - Tekan R untuk kalibrasi ulang
+  - Tekan M untuk toggle Mode Render (Async ↔ Sync)
 """
 
 import cv2
@@ -122,7 +123,8 @@ def main():
     print("=" * 50)
     print("  SCOLIO-SCAN")
     print("  Sistem Monitoring Postur Tulang Belakang")
-    print("  [Mode: Threaded AI Inference]")
+    print("  [Mode: Async AI Inference (Default)]")
+    print("  Tekan M untuk Toggle Mode Render")
     print("=" * 50)
     print()
 
@@ -197,6 +199,7 @@ def main():
     fps_timer = time.time()
     fps_frame_count = 0
     last_keypoints = None
+    sync_mode = False          # False = Async (mulus), True = Sync (presisi)
 
     # ── Window OpenCV ────────────────────────────────────────
     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
@@ -230,13 +233,21 @@ def main():
             else:
                 frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
 
-            # ── Kirim frame ke AI Thread (non-blocking) ──────
-            ai_thread.submit_frame(frame)
-
-            # ── Ambil hasil deteksi terbaru dari AI Thread ───
-            keypoints, ai_fps = ai_thread.get_result()
-            if keypoints is not None:
-                last_keypoints = keypoints
+            # ── Deteksi Pose (Mode tergantung sync_mode) ──────
+            if sync_mode:
+                # SYNC MODE: Proses langsung di main thread
+                # Skeleton 100% akurat tapi video jadi lambat
+                keypoints = detector.detect(frame)
+                if keypoints is not None:
+                    last_keypoints = keypoints
+                ai_fps = display_fps  # Di sync mode, AI FPS = Display FPS
+            else:
+                # ASYNC MODE (default): Kirim ke AI Thread
+                # Video mulus tapi skeleton agak delay
+                ai_thread.submit_frame(frame)
+                keypoints, ai_fps = ai_thread.get_result()
+                if keypoints is not None:
+                    last_keypoints = keypoints
 
             # ── Proses keypoints & gambar overlay ────────────
             if last_keypoints is not None:
@@ -277,7 +288,8 @@ def main():
                 )
 
             # ── Kontrol hint ─────────────────────────────────
-            frame = draw_controls_hint(frame)
+            render_mode_label = "SYNC (Presisi)" if sync_mode else "ASYNC (Mulus)"
+            frame = draw_controls_hint(frame, render_mode=render_mode_label)
 
             # ── Hitung Display FPS ───────────────────────────
             fps_frame_count += 1
@@ -305,6 +317,11 @@ def main():
                 print("[INFO] Kalibrasi ulang — Duduk tegak dan menghadap kamera!")
                 alert_system.start_calibration()
                 last_keypoints = None
+
+            if key == ord("m") or key == ord("M"):
+                sync_mode = not sync_mode
+                mode_name = "SYNC (Presisi)" if sync_mode else "ASYNC (Mulus)"
+                print(f"[INFO] Mode Render diubah ke: {mode_name}")
 
     except KeyboardInterrupt:
         print("\n[INFO] Dihentikan oleh pengguna.")

@@ -327,19 +327,20 @@ def draw_calibration_overlay(frame: np.ndarray, remaining: float) -> np.ndarray:
     return frame
 
 
-def draw_controls_hint(frame: np.ndarray) -> np.ndarray:
+def draw_controls_hint(frame: np.ndarray, render_mode: str = "ASYNC (Mulus)") -> np.ndarray:
     """
     Gambar petunjuk kontrol di bagian bawah frame.
 
     Args:
         frame: Frame BGR
+        render_mode: Label mode render aktif ("ASYNC (Mulus)" atau "SYNC (Presisi)")
 
     Returns:
         Frame dengan petunjuk kontrol
     """
     h, w = frame.shape[:2]
 
-    hint = "Q: Keluar  |  R: Kalibrasi Ulang"
+    hint = f"Q: Keluar  |  R: Kalibrasi Ulang  |  M: Mode [{render_mode}]"
     hint_scale = _font_scale(0.35, h)
     hint_thick = max(1, _scale(1, h))
     bar_h = _scale(25, h)
@@ -355,3 +356,4 @@ def draw_controls_hint(frame: np.ndarray) -> np.ndarray:
                 FONT, hint_scale, (180, 180, 180), hint_thick, cv2.LINE_AA)
 
     return frame
+
