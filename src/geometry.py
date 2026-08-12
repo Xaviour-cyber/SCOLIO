@@ -8,28 +8,25 @@ dan kemiringan kepala menggunakan koordinat keypoint.
 import math
 
 
-def calculate_spine_angle(neck: tuple, mid_hip: tuple) -> float:
+def calculate_spine_angle(top_point: tuple, bottom_point: tuple) -> float:
     """
     Menghitung sudut deviasi lateral (θ) tulang belakang.
 
-    Sudut dihitung antara garis vertikal dan garis neck→mid_hip.
-    0° = posisi tegak sempurna (neck tepat di atas mid_hip).
+    Sudut dihitung antara garis vertikal dan garis dari top_point ke bottom_point.
+    0° = posisi tegak sempurna (top_point tepat di atas bottom_point).
 
     Menggunakan rumus:
-        θ = atan2(|neck.x - hip.x|, |neck.y - hip.y|)
-
-    Catatan: Pada koordinat gambar, sumbu Y terbalik (ke bawah positif),
-    sehingga neck.y < hip.y untuk postur normal.
+        θ = atan2(|top.x - bottom.x|, |top.y - bottom.y|)
 
     Args:
-        neck: Tuple (x, y) posisi leher (titik tengah bahu)
-        mid_hip: Tuple (x, y) posisi tengah pinggul
+        top_point: Tuple (x, y) posisi referensi atas (misal: nose atau neck)
+        bottom_point: Tuple (x, y) posisi referensi bawah (misal: mid_hip)
 
     Returns:
         Sudut deviasi dalam derajat (selalu positif). 0° = tegak.
     """
-    dx = abs(neck[0] - mid_hip[0])
-    dy = abs(neck[1] - mid_hip[1])
+    dx = abs(top_point[0] - bottom_point[0])
+    dy = abs(top_point[1] - bottom_point[1])
 
     # Hindari division by zero jika titik identik
     if dy == 0 and dx == 0:
@@ -53,10 +50,10 @@ def calculate_shoulder_tilt(left_shoulder: tuple, right_shoulder: tuple) -> floa
         right_shoulder: Tuple (x, y) posisi bahu kanan
 
     Returns:
-        Sudut kemiringan dalam derajat (bisa positif/negatif).
+        Sudut kemiringan absolut dalam derajat (selalu positif).
     """
-    dx = right_shoulder[0] - left_shoulder[0]
-    dy = right_shoulder[1] - left_shoulder[1]
+    dx = abs(right_shoulder[0] - left_shoulder[0])
+    dy = abs(right_shoulder[1] - left_shoulder[1])
 
     # Hindari division by zero
     if dx == 0 and dy == 0:

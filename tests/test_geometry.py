@@ -101,8 +101,9 @@ class TestCalculateShoulderTilt:
         left = (200, 200)
         right = (440, 180)  # lebih tinggi
         tilt = calculate_shoulder_tilt(left, right)
-        # dy = 180-200 = -20 (negatif)
-        assert tilt < 0
+        # dy = 180-200 = -20 (negatif), tapi rumus baru pakai abs() jadi hasil selalu positif
+        assert tilt > 0
+        assert abs(tilt - 4.76) < 0.5
 
     def test_identical_points(self):
         """Titik identik → 0°."""

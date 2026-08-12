@@ -130,7 +130,8 @@ class PostureAlertSystem:
         mode = keypoints.get("detection_mode", "full_body")
 
         if mode == "full_body":
-            angle = calculate_spine_angle(keypoints["neck"], keypoints["mid_hip"])
+            # Menggunakan nose sebagai titik atas tulang belakang, sehingga stabil walau bahu diangkat
+            angle = calculate_spine_angle(keypoints["nose"], keypoints["mid_hip"])
         else:
             # Upper body mode — gunakan sudut komposit
             angle = calculate_composite_upper_body_angle(

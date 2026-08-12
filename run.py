@@ -41,7 +41,7 @@ CAMERA_SOURCE = "VID_20260623_210838.mp4"
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 MAX_DISPLAY_HEIGHT = 720     # Batas tinggi tampilan agar muat di layar
-ANGLE_THRESHOLD = 15.0       # Derajat
+ANGLE_THRESHOLD = 10.0       # Derajat
 ALERT_DURATION = 10.0        # Detik
 CALIBRATION_DURATION = 3.0   # Detik
 
