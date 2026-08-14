@@ -135,15 +135,15 @@ class SessionLogger:
                     solid_capstyle="round")
 
         # Garis batas threshold
-        ax.axhline(y=15, color="#e74c3c", linestyle="--", alpha=0.6,
-                    label="Ambang Batas (15°)")
+        ax.axhline(y=10, color="#e74c3c", linestyle="--", alpha=0.6,
+                    label="Ambang Batas (10°)")
 
         # Area warna (transparan)
         ax.fill_between(times, 0, angles,
-                         where=[a <= 15 for a in angles],
+                         where=[a <= 10 for a in angles],
                          color="#2ecc71", alpha=0.08, interpolate=True)
         ax.fill_between(times, 0, angles,
-                         where=[a > 15 for a in angles],
+                         where=[a > 10 for a in angles],
                          color="#e74c3c", alpha=0.08, interpolate=True)
 
         # Legend manual untuk warna status
@@ -152,7 +152,7 @@ class SessionLogger:
             Line2D([0], [0], color="#2ecc71", lw=3, label="Normal"),
             Line2D([0], [0], color="#f39c12", lw=3, label="Warning"),
             Line2D([0], [0], color="#e74c3c", lw=3, label="Alert"),
-            Line2D([0], [0], color="#e74c3c", lw=1, ls="--", label="Ambang Batas (15°)"),
+            Line2D([0], [0], color="#e74c3c", lw=1, ls="--", label="Ambang Batas (10°)"),
         ]
         ax.legend(handles=legend_items, loc="upper left", fontsize=9)
 
@@ -194,8 +194,8 @@ class SessionLogger:
                             alpha=0.8, edgecolors="black", linewidths=0.8,
                             zorder=5)
 
-        ax2.axhline(y=15, color="#e74c3c", linestyle="--", alpha=0.6,
-                     label="Ambang Batas (15°)")
+        ax2.axhline(y=10, color="#e74c3c", linestyle="--", alpha=0.6,
+                     label="Ambang Batas (10°)")
 
         ax2.set_xlabel("Waktu (detik)", fontsize=11)
         ax2.set_ylabel("Sudut Deviasi Relatif (°)", fontsize=11)
@@ -303,9 +303,9 @@ class SessionLogger:
         # Warna berdasarkan rata-rata sudut
         colors = []
         for a in avg_angles:
-            if a < 10:
+            if a < 7:
                 colors.append("#2ecc71")   # hijau = aman
-            elif a < 15:
+            elif a < 10:
                 colors.append("#f39c12")   # kuning = hati-hati
             else:
                 colors.append("#e74c3c")   # merah = berisiko
@@ -323,8 +323,8 @@ class SessionLogger:
                          fontsize=8, alpha=0.7)
 
         # Garis batas
-        ax.axhline(y=15, color="#e74c3c", linestyle="--", alpha=0.5,
-                    label="Ambang Batas Postur (15°)")
+        ax.axhline(y=10, color="#e74c3c", linestyle="--", alpha=0.5,
+                    label="Ambang Batas Postur (10°)")
 
         ax.set_xlabel("Durasi Screen Time Harian (Menit)", fontsize=12)
         ax.set_ylabel("Rata-rata Sudut Deviasi Postur (°)", fontsize=12)
