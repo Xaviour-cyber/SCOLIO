@@ -1,0 +1,282 @@
+:root {
+    /* Apple Color Palette */
+    --bg-color: #F5F5F7;
+    --card-bg: rgba(255, 255, 255, 0.85); /* Slightly translucent */
+    --text-main: #1D1D1F;
+    --text-muted: #86868B;
+    --border-color: rgba(0, 0, 0, 0.05); /* Extremely subtle border, if any */
+    
+    /* Apple Status Colors */
+    --color-normal: #34C759;
+    --color-warning: #FF9500;
+    --color-alert: #FF3B30;
+    --color-calibrating: #007AFF;
+    
+    /* Apple Shadows */
+    --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    /* San Francisco Font Stack */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+}
+
+/* HEADER */
+header {
+    margin-bottom: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-main);
+}
+
+/* LAYOUT */
+.dashboard {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 2.5rem;
+}
+
+/* VIDEO SECTION */
+.video-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.video-wrapper {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background-color: #000;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    aspect-ratio: 4/3;
+    /* Soft border for depth */
+    border: 1px solid rgba(255,255,255,0.1); 
+}
+
+#video-feed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5rem;
+}
+
+.btn-primary {
+    background-color: var(--text-main);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    border-radius: 9999px; /* Pill shape */
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.btn-primary:hover {
+    background-color: #333336;
+    transform: scale(1.02);
+}
+
+.fps-indicator {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* METRICS SECTION */
+.metrics-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.card {
+    background-color: var(--card-bg);
+    backdrop-filter: blur(20px); /* Glassmorphism */
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: var(--shadow-soft);
+    transition: box-shadow 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.4);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+.card h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+/* STATUS CARD */
+#val-state {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    transition: color 0.4s ease;
+}
+
+/* ANGLE CARD */
+.angle-display {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 1.5rem;
+}
+
+#val-angle {
+    font-size: 5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.unit {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 0.25rem;
+}
+
+/* GAUGE BAR */
+.gauge-container {
+    width: 100%;
+    height: 10px;
+    background-color: rgba(0,0,0,0.06);
+    border-radius: 9999px;
+    position: relative;
+}
+
+.gauge-bar {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.gauge-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--color-normal);
+    border-radius: 9999px;
+    transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s ease;
+}
+
+.gauge-threshold {
+    position: absolute;
+    top: -4px;
+    left: 66.66%; /* 10 degrees out of 15 max expected */
+    width: 3px;
+    height: 18px;
+    background-color: var(--text-muted);
+    border-radius: 4px;
+    z-index: 10;
+    opacity: 0.5;
+}
+
+/* TIMER BAR */
+.timer-display {
+    margin-bottom: 1.5rem;
+}
+
+#val-elapsed {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+.progress-container {
+    width: 100%;
+    height: 10px;
+    background-color: rgba(0,0,0,0.06);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--color-alert);
+    border-radius: 9999px;
+    transition: width 0.2s linear, background-color 0.4s ease;
+}
+
+/* CALIBRATION OVERLAY */
+#calibration-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(245, 245, 247, 0.7); /* Apple Light Gray semi-transparent */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: opacity 0.5s ease;
+}
+
+#calibration-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#calibration-overlay h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+#calibration-overlay p {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+#calibration-timer {
+    font-size: 6rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    color: var(--color-calibrating);
+}

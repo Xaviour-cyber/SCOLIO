@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scolio-Scan | Clinical Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#eeedf3",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#002308",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#c6c6c8",
+                    "tertiary": "#000400",
+                    "secondary": "#5d5e60",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-container": "#009a3b",
+                    "primary-container": "#1d1d1f",
+                    "on-tertiary-fixed-variant": "#00531c",
+                    "on-secondary-container": "#616365",
+                    "primary-fixed-dim": "#c8c6c8",
+                    "on-tertiary": "#ffffff",
+                    "surface-dim": "#dad9df",
+                    "on-primary-fixed-variant": "#474649",
+                    "surface": "#faf8fe",
+                    "on-surface": "#1a1b1f",
+                    "surface-variant": "#e3e2e7",
+                    "secondary-container": "#dfdfe1",
+                    "tertiary-fixed": "#72fe88",
+                    "tertiary-fixed-dim": "#53e16f",
+                    "primary-fixed": "#e4e2e4",
+                    "surface-bright": "#faf8fe",
+                    "on-primary-fixed": "#1b1b1d",
+                    "background": "#faf8fe",
+                    "on-tertiary-fixed": "#002107",
+                    "on-secondary-fixed-variant": "#454749",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-primary": "#c8c6c8",
+                    "outline": "#77767b",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#e2e2e4",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#2f3034",
+                    "surface-container-highest": "#e3e2e7",
+                    "on-surface-variant": "#46464a",
+                    "surface-container-low": "#f4f3f8",
+                    "on-secondary-fixed": "#1a1c1d",
+                    "inverse-on-surface": "#f1f0f5",
+                    "outline-variant": "#c7c6ca",
+                    "surface-tint": "#5f5e60",
+                    "primary": "#030304",
+                    "surface-container-high": "#e9e7ed",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#868587",
+                    "on-background": "#1a1b1f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "2xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "section-gap": "64px",
+                    "unit": "8px",
+                    "container-padding": "40px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter", "sans-serif"],
+                    "display-lg": ["Inter", "sans-serif"],
+                    "headline-lg-mobile": ["Inter", "sans-serif"],
+                    "body-md": ["Inter", "sans-serif"],
+                    "headline-md": ["Inter", "sans-serif"],
+                    "body-lg": ["Inter", "sans-serif"],
+                    "label-md": ["Inter", "sans-serif"],
+                    "headline-lg": ["Inter", "sans-serif"]
+            },
+            "fontSize": {
+                    "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["15px", {"lineHeight": "22px", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["17px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                    "label-md": ["13px", {"lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+        }
+    </style>
+</head>
+<body class="bg-[#F5F5F7] text-on-surface antialiased font-sans selection:bg-primary-container selection:text-on-primary-container min-h-screen overflow-x-hidden">
+<!-- TopNavBar (Web) -->
+<nav class="hidden md:flex bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] fixed top-0 left-0 w-full z-50 justify-between items-center px-container-padding h-20">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold tracking-tight text-primary dark:text-on-primary-fixed">Scolio-Scan</span>
+</div>
+<div class="flex items-center gap-6">
+<!-- Profil Icon Dihapus -->
+</div>
+</nav>
+<!-- SideNavBar (Desktop Left Panel) -->
+<aside class="hidden md:flex bg-surface/40 dark:bg-surface-container/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] fixed left-0 top-0 h-full flex-col py-8 px-6 z-40 w-72 pt-28">
+<div class="mb-8 px-4 flex flex-col items-center justify-center">
+<!-- Logo Icon Dihapus -->
+<h2 class="font-headline-md text-headline-md font-bold text-primary dark:text-on-primary-fixed">Scolio-Scan</h2>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Clinical AI Suite</p>
+</div>
+<nav class="flex-1 flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-4 bg-primary dark:bg-primary-fixed text-on-primary dark:text-on-primary-fixed rounded-xl px-4 py-3 shadow-md scale-[0.97] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 text-secondary dark:text-on-secondary-container px-4 py-3 hover:bg-secondary-container/50 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">folder_shared</span>
+<span class="font-label-md text-label-md">Patient Records</span>
+</a>
+<a class="flex items-center gap-4 text-secondary dark:text-on-secondary-container px-4 py-3 hover:bg-secondary-container/50 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-20 md:pb-8 md:pl-[320px] min-h-screen flex flex-col px-4 md:px-12 max-w-[1600px] mx-auto">
+<header class="mb-8 flex justify-between items-end">
+    <div>
+        <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight">Real-time Diagnostics</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-2">Active Monitoring Session</p>
+    </div>
+    <button id="btn-calibrate" class="bg-primary text-white rounded-xl py-3 px-6 font-semibold hover:opacity-90 transition-opacity flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">refresh</span>
+        Kalibrasi Ulang
+    </button>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
+<!-- Left Column: Video Feed (Wide) -->
+<div class="lg:col-span-8 flex flex-col">
+<div class="bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] overflow-hidden relative flex-1 min-h-[400px] lg:min-h-[600px] border border-black/5">
+<!-- Video Feed Live -->
+<div class="absolute inset-0 bg-surface-container-lowest flex items-center justify-center">
+<img id="video-feed" src="{{ url_for('video_feed') }}" class="w-full h-full object-cover" alt="AI Skeleton Camera">
+<!-- Overlay UI -->
+<div class="absolute top-6 right-6 bg-black/60 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2 text-white z-10">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="font-label-md text-label-md tracking-wider">LIVE <span id="val-fps" class="text-xs text-gray-300 ml-1">0</span> FPS</span>
+</div>
+
+<!-- Calibration Overlay -->
+<div id="calibration-overlay" class="absolute inset-0 bg-black/50 backdrop-blur-md flex flex-col items-center justify-center z-20 hidden transition-opacity duration-300">
+    <h2 class="text-4xl font-bold text-white mb-2 tracking-tight">KALIBRASI POSTUR</h2>
+    <p class="text-lg text-white mb-8">Duduk tegak dan menghadap kamera</p>
+    <div id="calibration-timer" class="text-7xl font-bold text-[#3B82F6]">3.0</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Metrics (Narrow) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Posture Status Card -->
+<div class="glass-panel rounded-2xl p-6 flex flex-col justify-between h-40">
+<div class="flex items-start justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Overall Status</span>
+<span class="material-symbols-outlined text-secondary">monitor_heart</span>
+</div>
+<div class="mt-4">
+<div id="val-state" class="font-display-lg text-display-lg text-[#34C759] tracking-tight transition-colors duration-300">Optimal</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Sistem memonitor pergerakan</p>
+</div>
+</div>
+<!-- Angle Deviation Card -->
+<div class="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Cobb Angle Deviation</span>
+<span class="material-symbols-outlined text-secondary">straighten</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span id="val-angle" class="font-display-lg text-display-lg text-primary tracking-tighter transition-all">0.0°</span>
+<span class="font-body-md text-body-md text-on-surface-variant">/ 10° threshold</span>
+</div>
+<!-- Minimalist Linear Gauge -->
+<div class="mt-2">
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden relative">
+<div id="gauge-fill" class="absolute left-0 top-0 h-full w-[0%] bg-[#34C759] rounded-full transition-all duration-300"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">0°</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">15°+</span>
+</div>
+</div>
+</div>
+<!-- Warning Timer Card -->
+<div class="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Session Balance</span>
+<span class="material-symbols-outlined text-secondary">timer</span>
+</div>
+<div id="val-elapsed" class="font-headline-lg text-headline-lg text-primary tracking-tight transition-all">0.0s</div>
+<div class="mt-2">
+<div class="flex justify-between mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Current Load</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">10s Limit</span>
+</div>
+<!-- Minimal thin progress bar -->
+<div class="h-[3px] w-full bg-surface-variant rounded-full relative overflow-hidden">
+<div id="timer-progress" class="absolute left-0 top-0 h-full w-[0%] bg-primary transition-all duration-300"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body></html>

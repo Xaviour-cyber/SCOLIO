@@ -40,6 +40,7 @@ echo [INFO] Pastikan koneksi internet stabil.
 echo.
 .venv\Scripts\python.exe -m pip install --upgrade pip
 .venv\Scripts\pip.exe install -r requirements.txt
+.venv\Scripts\pip.exe install Flask
 if %errorlevel% neq 0 (
     echo.
     echo [ERROR] Gagal menginstall dependensi!
