@@ -8,6 +8,7 @@ import sys
 import os
 import threading
 import copy
+import atexit
 from flask import Flask, render_template, Response, jsonify
 
 from src.camera import ThreadedCamera
@@ -209,6 +210,19 @@ def status():
 def calibrate():
     alert_system.start_calibration()
     return jsonify({"status": "ok"})
+
+def cleanup_system():
+    print("\n[INFO] Menyimpan data log dan menutup sistem...")
+    if logger is not None:
+        logger.close_and_report()
+    if cap is not None:
+        cap.release()
+    if camera is not None:
+        camera.stop()
+    if ai_thread is not None:
+        ai_thread.stop()
+
+atexit.register(cleanup_system)
 
 if __name__ == "__main__":
     print("=" * 50)
