@@ -7,7 +7,11 @@ const UI = {
     timerProgress: document.getElementById('timer-progress'),
     calibrationOverlay: document.getElementById('calibration-overlay'),
     calibrationTimer: document.getElementById('calibration-timer'),
-    btnCalibrate: document.getElementById('btn-calibrate')
+    btnCalibrate: document.getElementById('btn-calibrate'),
+    btnSync: document.getElementById('btn-sync'),
+    syncIcon: document.getElementById('sync-icon'),
+    syncLabel: document.getElementById('sync-label'),
+    btnShutdown: document.getElementById('btn-shutdown')
 };
 
 // Apple Color Palette used in the Tailwind design
@@ -32,6 +36,17 @@ async function fetchStatus() {
 function updateUI(data) {
     // Update FPS
     UI.valFps.innerText = data.fps.toFixed(0);
+
+    // Update Sync state
+    if (data.sync_mode) {
+        UI.syncIcon.innerText = "check_circle";
+        UI.syncLabel.innerText = "Mode: Sync (Presisi)";
+        UI.btnSync.classList.replace('text-primary', 'text-emerald-600');
+    } else {
+        UI.syncIcon.innerText = "speed";
+        UI.syncLabel.innerText = "Mode: Async (Cepat)";
+        UI.btnSync.classList.replace('text-emerald-600', 'text-primary');
+    }
 
     if (data.state === "CALIBRATING") {
         UI.calibrationOverlay.classList.remove('hidden');
@@ -91,5 +106,40 @@ if (UI.btnCalibrate) {
     });
 }
 
-// Start polling API every 150ms
-setInterval(fetchStatus, 150);
+if (UI.btnSync) {
+    UI.btnSync.addEventListener('click', async () => {
+        try {
+            await fetch('/api/toggle_sync', { method: 'POST' });
+        } catch (e) {
+            console.error("Failed to toggle sync", e);
+        }
+    });
+}
+
+if (UI.btnShutdown) {
+    UI.btnShutdown.addEventListener('click', async () => {
+        // Change button state
+        UI.btnShutdown.innerHTML = '<div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Menyimpan Grafik...';
+        UI.btnShutdown.disabled = true;
+        
+        try {
+            await fetch('/api/shutdown', { method: 'POST' });
+        } catch (e) {
+            // Error is expected because the server literally kills itself
+        }
+        
+        // Show success screen
+        document.body.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center bg-slate-900 text-white font-sans text-center px-4">
+                <div>
+                    <span class="material-symbols-outlined text-6xl text-emerald-500 mb-4 block">check_circle</span>
+                    <h1 class="text-3xl font-bold mb-2">Sesi Selesai</h1>
+                    <p class="text-slate-400">Data telah disimpan dan grafik scatter plot berhasil dibuat.<br>Server telah dimatikan, Anda dapat menutup jendela ini.</p>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// Start polling API every 400ms to save CPU
+setInterval(fetchStatus, 400);

@@ -150,10 +150,16 @@
         <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight">Real-time Diagnostics</h1>
         <p class="font-body-md text-body-md text-on-surface-variant mt-2">Active Monitoring Session</p>
     </div>
-    <button id="btn-calibrate" class="bg-primary text-white rounded-xl py-3 px-6 font-semibold hover:opacity-90 transition-opacity flex items-center gap-2">
-        <span class="material-symbols-outlined text-[18px]">refresh</span>
-        Kalibrasi Ulang
-    </button>
+    <div class="flex gap-4">
+        <button id="btn-sync" class="bg-surface border border-outline-variant text-primary rounded-xl py-3 px-6 font-semibold hover:bg-surface-variant transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]" id="sync-icon">speed</span>
+            <span id="sync-label">Mode: Async (Cepat)</span>
+        </button>
+        <button id="btn-calibrate" class="bg-primary text-white rounded-xl py-3 px-6 font-semibold hover:opacity-90 transition-opacity flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">refresh</span>
+            Kalibrasi Ulang
+        </button>
+    </div>
 </header>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
 <!-- Left Column: Video Feed (Wide) -->
@@ -232,5 +238,12 @@
 </div>
 </div>
 </main>
+
+<!-- Floating End Session Button -->
+<button id="btn-shutdown" class="fixed bottom-8 right-8 bg-[#ff3b30] hover:bg-[#ff453a] text-white rounded-2xl py-4 px-8 font-semibold shadow-[0_10px_30px_rgba(255,59,48,0.3)] transition-all transform hover:scale-105 flex items-center gap-3 z-50">
+    <span class="material-symbols-outlined">power_settings_new</span>
+    Akhiri Sesi & Simpan
+</button>
+
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body></html>

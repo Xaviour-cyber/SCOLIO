@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scolio-Scan | Launch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        apple: {
+                            bg: '#F5F5F7',
+                            text: '#1D1D1F',
+                            card: '#FFFFFF',
+                            gray: '#86868B',
+                            blue: '#0071E3',
+                            blueHover: '#0077ED'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #F5F5F7; 
+            color: #1D1D1F; 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+        }
+        .apple-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            border-radius: 1.5rem; /* 24px */
+        }
+        .apple-input {
+            background-color: rgba(0,0,0,0.02);
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .apple-input:focus {
+            background-color: #FFFFFF;
+            border-color: #0071E3;
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative px-4">
+
+    <!-- Clean Apple-style Container -->
+    <div class="apple-card p-10 md:p-12 w-full max-w-[480px] transition-all">
+        <div class="text-center mb-10">
+            <!-- Minimalist Logo -->
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-sm border border-gray-100 mb-6 text-apple-text">
+                <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+            </div>
+            <h1 class="text-[32px] leading-tight font-bold tracking-tight text-apple-text mb-2">Scolio-Scan.</h1>
+            <p class="text-apple-gray text-[17px] tracking-tight">Clinical AI Posture Assessment.</p>
+        </div>
+
+        <form id="start-form" class="space-y-6">
+            <div>
+                <label for="student_id" class="block text-[13px] font-semibold text-apple-text mb-2 tracking-wide uppercase">Patient ID / Name</label>
+                <div class="relative">
+                    <input type="text" id="student_id" required
+                        class="apple-input block w-full px-4 py-4 rounded-xl text-apple-text text-[17px] placeholder-apple-gray outline-none"
+                        placeholder="Enter patient full name">
+                </div>
+            </div>
+
+            <div>
+                <label for="screen_time" class="block text-[13px] font-semibold text-apple-text mb-2 tracking-wide uppercase">Est. Daily Screen Time</label>
+                <div class="relative">
+                    <input type="number" id="screen_time" min="0" required
+                        class="apple-input block w-full px-4 py-4 rounded-xl text-apple-text text-[17px] placeholder-apple-gray outline-none"
+                        placeholder="Minutes (e.g. 240)">
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <span class="text-apple-gray font-medium">min</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" id="start-btn"
+                    class="w-full flex items-center justify-center gap-2 py-4 px-4 bg-apple-blue hover:bg-apple-blueHover text-white rounded-full font-semibold text-[17px] tracking-tight shadow-sm transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                    <span>Initialize Core Engine</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Apple-style Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-[#F5F5F7]/80 backdrop-blur-md z-50 hidden flex-col items-center justify-center transition-all duration-500">
+        <div class="w-12 h-12 border-[3px] border-apple-gray/20 border-t-apple-blue rounded-full animate-spin mb-6"></div>
+        <h2 class="text-2xl font-bold tracking-tight text-apple-text mb-2">Connecting to AI Engine</h2>
+        <p class="text-apple-gray text-[15px]">Booting neural network and camera array...</p>
+    </div>
+
+    <script>
+        document.getElementById('start-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('start-btn');
+            const overlay = document.getElementById('loading-overlay');
+            const studentId = document.getElementById('student_id').value;
+            const screenTime = document.getElementById('screen_time').value;
+
+            // Show loading state
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+
+            try {
+                // Tembak API Start untuk menghidupkan kamera & AI
+                const res = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id: studentId, screen_time: screenTime })
+                });
+
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    // Berhasil nyala, pindah ke dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('Gagal menyalakan sistem: ' + data.message);
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan jaringan/server mati.');
+                console.error(err);
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        });
+    </script>
+</body>
+</html>

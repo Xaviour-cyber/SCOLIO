@@ -1,5 +1,5 @@
 """
-run_web.py — Titik Masuk Utama Scolio-Scan (Versi Web App)
+run_web.py — Titik Masuk Utama Scolio-Scan (Versi Web App - Mode Stealth)
 """
 
 import cv2
@@ -9,7 +9,7 @@ import os
 import threading
 import copy
 import atexit
-from flask import Flask, render_template, Response, jsonify
+from flask import Flask, render_template, Response, jsonify, request, redirect
 
 from src.camera import ThreadedCamera
 from src.detector import PoseDetector
@@ -18,7 +18,7 @@ from src.logger import SessionLogger
 from src.overlay import draw_skeleton
 
 # ── Konfigurasi ──────────────────────────────────────────────
-CAMERA_SOURCE = "VID_20260623_210838.mp4"
+CAMERA_SOURCE = "VID_20260808_094701.mp4"
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 MAX_DISPLAY_HEIGHT = 720
@@ -37,7 +37,8 @@ global_state = {
     "calibration_remaining": 0.0,
     "timer_progress": 0.0,
     "detection_mode": "full_body",
-    "is_detecting": False
+    "is_detecting": False,
+    "sync_mode": False
 }
 
 class InferenceThread:
@@ -89,7 +90,7 @@ class InferenceThread:
                 ai_frame_count = 0
                 ai_fps_timer = now
 
-# Inisialisasi global
+# Inisialisasi global AI (Biar loadingnya cepat pas app dibuka)
 detector = PoseDetector(model_path="yolo26n-pose.pt", confidence=0.5)
 ai_thread = InferenceThread(detector)
 alert_system = PostureAlertSystem(ANGLE_THRESHOLD, ALERT_DURATION, CALIBRATION_DURATION)
@@ -98,9 +99,11 @@ camera = None
 cap = None
 is_video_file = False
 video_fps = 30.0
+system_initialized = False
+sync_mode = False
 
 def init_system(student_id, screen_time):
-    global camera, cap, is_video_file, logger, video_fps
+    global camera, cap, is_video_file, logger, video_fps, system_initialized
     
     if isinstance(CAMERA_SOURCE, str) and os.path.exists(CAMERA_SOURCE):
         _, ext = os.path.splitext(CAMERA_SOURCE.lower())
@@ -119,15 +122,20 @@ def init_system(student_id, screen_time):
     
     logger = SessionLogger(student_id=student_id, screen_time_min=screen_time)
     alert_system.start_calibration()
+    system_initialized = True
 
 def generate_frames():
-    global global_state
+    global global_state, sync_mode
     display_fps = 0.0
     fps_timer = time.time()
     fps_frame_count = 0
     last_keypoints = None
 
     while True:
+        if not system_initialized:
+            time.sleep(0.1)
+            continue
+
         if is_video_file:
             ret, frame = cap.read()
             if not ret or frame is None:
@@ -151,11 +159,16 @@ def generate_frames():
         else:
             frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
 
-        # Async Inference
-        ai_thread.submit_frame(frame)
-        keypoints, ai_fps = ai_thread.get_result()
-        if keypoints is not None:
-            last_keypoints = keypoints
+        # AI Inference: Sync vs Async
+        if sync_mode:
+            keypoints = detector.detect(frame)
+            if keypoints is not None:
+                last_keypoints = keypoints
+        else:
+            ai_thread.submit_frame(frame)
+            keypoints, ai_fps = ai_thread.get_result()
+            if keypoints is not None:
+                last_keypoints = keypoints
 
         # Proses State
         if last_keypoints is not None:
@@ -169,6 +182,7 @@ def generate_frames():
             global_state["elapsed"] = elapsed
             global_state["detection_mode"] = active_mode
             global_state["fps"] = display_fps
+            global_state["sync_mode"] = sync_mode
             
             if state == PostureState.CALIBRATING:
                 global_state["calibration_remaining"] = alert_system.get_calibration_remaining()
@@ -187,15 +201,29 @@ def generate_frames():
             fps_frame_count = 0
             fps_timer = now
 
-        # Encode to JPEG (TIDAK ADA TEKS UI, HANYA SKELETON)
-        ret, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+        # Encode to JPEG (Kualitas 65 untuk meringankan kerja CPU)
+        ret, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 65])
         frame_bytes = buffer.tobytes()
 
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+               
+        # Mencegah "Buffer Bloat" di jaringan lokal yang menyebabkan delay 2-5 detik
+        if not is_video_file:
+            time.sleep(0.06)  # Batasi ~15 FPS agar AI punya waktu memproses CPU
+
+# ── ROUTES ───────────────────────────────────────────────────
 
 @app.route('/')
 def index():
+    if system_initialized:
+        return redirect('/dashboard')
+    return render_template('home.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if not system_initialized:
+        return redirect('/')
     return render_template('index.html')
 
 @app.route('/video_feed')
@@ -211,7 +239,37 @@ def calibrate():
     alert_system.start_calibration()
     return jsonify({"status": "ok"})
 
+@app.route('/api/start', methods=['POST'])
+def api_start():
+    data = request.get_json()
+    student_id = data.get('student_id', 'unknown')
+    try:
+        screen_time = float(data.get('screen_time', 0))
+    except ValueError:
+        screen_time = 0.0
+    
+    init_system(student_id, screen_time)
+    return jsonify({"status": "ok"})
+
+@app.route('/api/toggle_sync', methods=['POST'])
+def api_toggle_sync():
+    global sync_mode
+    sync_mode = not sync_mode
+    return jsonify({"status": "ok", "sync_mode": sync_mode})
+
+@app.route('/api/shutdown', methods=['POST'])
+def api_shutdown():
+    print("\n[INFO] Menerima perintah Shutdown dari Web UI...")
+    cleanup_system()
+    # Matikan flask server dengan mematikan proses OS
+    os._exit(0)
+    return jsonify({"status": "ok"})
+
+cleanup_done = False
 def cleanup_system():
+    global cleanup_done, logger, cap, camera, ai_thread
+    if cleanup_done: return
+    cleanup_done = True
     print("\n[INFO] Menyimpan data log dan menutup sistem...")
     if logger is not None:
         logger.close_and_report()
@@ -226,14 +284,8 @@ atexit.register(cleanup_system)
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  SCOLIO-SCAN WEB APP")
+    print("  SCOLIO-SCAN WEB APP (STEALTH MODE)")
     print("=" * 50)
-    student_id = input("  Masukkan Nama/ID Siswa : ").strip() or "unknown"
-    try:
-        screen_time = float(input("  Screen Time Harian (Menit) : ").strip() or "0")
-    except ValueError:
-        screen_time = 0.0
-    
-    init_system(student_id, screen_time)
     print("\n[INFO] Menjalankan Server Web di http://127.0.0.1:5000 ...")
+    # Tanpa input terminal! Tunggu user dari UI web.
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True, use_reloader=False)
