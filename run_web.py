@@ -251,8 +251,12 @@ def api_start():
     except ValueError:
         screen_time = 0.0
     
-    init_system(student_id, screen_time)
-    return jsonify({"status": "ok"})
+    try:
+        init_system(student_id, screen_time)
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        print(f"[ERROR] Gagal menginisialisasi sistem: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 @app.route('/api/toggle_sync', methods=['POST'])
 def api_toggle_sync():
