@@ -36,3 +36,6 @@ VID_*.mp4
 # Markdown & Dokumen Makalah
 *.md
 !README.md
+
+*.png
+generate_chart.py
