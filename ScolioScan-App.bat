@@ -11,3 +11,4 @@ ping 127.0.0.1 -n 4 > nul
 
 echo Membuka Aplikasi...
 start chrome.exe --app=http://127.0.0.1:5000
+   
