@@ -37,7 +37,7 @@ WINDOW_NAME = "Scolio-Scan | Monitoring Postur"
 # Ganti IP sesuai yang tampil di app DroidCam HP kamu
 # Untuk webcam biasa, ganti ke: CAMERA_SOURCE = 0
 # Untuk video file, ganti ke: CAMERA_SOURCE = "video.mp4"
-CAMERA_SOURCE = "VID_20260623_210838.mp4"
+CAMERA_SOURCE = "VID_20260808_094701.mp4"
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 MAX_DISPLAY_HEIGHT = 720     # Batas tinggi tampilan agar muat di layar
@@ -123,8 +123,7 @@ def main():
     print("=" * 50)
     print("  SCOLIO-SCAN")
     print("  Sistem Monitoring Postur Tulang Belakang")
-    print("  [Mode: Async AI Inference (Default)]")
-    print("  Tekan M untuk Toggle Mode Render")
+    print("  [Mode: Sync AI Inference (Presisi)]")
     print("=" * 50)
     print()
 
@@ -199,7 +198,7 @@ def main():
     fps_timer = time.time()
     fps_frame_count = 0
     last_keypoints = None
-    sync_mode = False          # False = Async (mulus), True = Sync (presisi)
+    sync_mode = True           # False = Async (mulus), True = Sync (presisi)
 
     # ── Window OpenCV ────────────────────────────────────────
     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
@@ -318,10 +317,7 @@ def main():
                 alert_system.start_calibration()
                 last_keypoints = None
 
-            if key == ord("m") or key == ord("M"):
-                sync_mode = not sync_mode
-                mode_name = "SYNC (Presisi)" if sync_mode else "ASYNC (Mulus)"
-                print(f"[INFO] Mode Render diubah ke: {mode_name}")
+
 
     except KeyboardInterrupt:
         print("\n[INFO] Dihentikan oleh pengguna.")

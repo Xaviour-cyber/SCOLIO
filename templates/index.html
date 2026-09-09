@@ -112,53 +112,29 @@
     </style>
 </head>
 <body class="bg-[#F5F5F7] text-on-surface antialiased font-sans selection:bg-primary-container selection:text-on-primary-container min-h-screen overflow-x-hidden">
-<!-- TopNavBar (Web) -->
-<nav class="hidden md:flex bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] fixed top-0 left-0 w-full z-50 justify-between items-center px-container-padding h-20">
-<div class="flex items-center gap-4">
-<span class="font-headline-md text-headline-md font-bold tracking-tight text-primary dark:text-on-primary-fixed">Scolio-Scan</span>
-</div>
-<div class="flex items-center gap-6">
-<!-- Profil Icon Dihapus -->
-</div>
-</nav>
-<!-- SideNavBar (Desktop Left Panel) -->
-<aside class="hidden md:flex bg-surface/40 dark:bg-surface-container/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] fixed left-0 top-0 h-full flex-col py-8 px-6 z-40 w-72 pt-28">
-<div class="mb-8 px-4 flex flex-col items-center justify-center">
-<!-- Logo Icon Dihapus -->
-<h2 class="font-headline-md text-headline-md font-bold text-primary dark:text-on-primary-fixed">Scolio-Scan</h2>
-<p class="font-label-md text-label-md text-on-surface-variant mt-1">Clinical AI Suite</p>
-</div>
-<nav class="flex-1 flex flex-col gap-2 mt-4">
-<a class="flex items-center gap-4 bg-primary dark:bg-primary-fixed text-on-primary dark:text-on-primary-fixed rounded-xl px-4 py-3 shadow-md scale-[0.97] transition-transform duration-200" href="#">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
-<span class="font-label-md text-label-md">Dashboard</span>
-</a>
-<a class="flex items-center gap-4 text-secondary dark:text-on-secondary-container px-4 py-3 hover:bg-secondary-container/50 transition-all rounded-xl" href="#">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">folder_shared</span>
-<span class="font-label-md text-label-md">Patient Records</span>
-</a>
-<a class="flex items-center gap-4 text-secondary dark:text-on-secondary-container px-4 py-3 hover:bg-secondary-container/50 transition-all rounded-xl" href="#">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
-<span class="font-label-md text-label-md">Settings</span>
-</a>
-</nav>
-</aside>
-<!-- Main Content Canvas -->
-<main class="pt-24 pb-20 md:pb-8 md:pl-[320px] min-h-screen flex flex-col px-4 md:px-12 max-w-[1600px] mx-auto">
-<header class="mb-8 flex justify-between items-end">
-    <div>
-        <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight">Real-time Diagnostics</h1>
-        <p class="font-body-md text-body-md text-on-surface-variant mt-2">Active Monitoring Session</p>
+<!-- Top Header Bar with Logo -->
+<nav class="bg-white/80 backdrop-blur-xl border-b border-black/5 fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 md:px-12 h-20 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+    <div class="flex items-center gap-4">
+        <img src="{{ url_for('static', filename='img/logo_transparent.png') }}" alt="Scolio-Scan Logo" class="h-10 md:h-12 w-auto object-contain">
     </div>
-    <div class="flex gap-4">
-        <button id="btn-sync" class="bg-surface border border-outline-variant text-primary rounded-xl py-3 px-6 font-semibold hover:bg-surface-variant transition-colors flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]" id="sync-icon">speed</span>
-            <span id="sync-label">Mode: Async (Cepat)</span>
-        </button>
-        <button id="btn-calibrate" class="bg-primary text-white rounded-xl py-3 px-6 font-semibold hover:opacity-90 transition-opacity flex items-center gap-2">
+    <div class="flex items-center gap-3">
+        <button id="btn-calibrate" class="bg-surface border border-outline-variant text-primary rounded-xl py-2.5 px-5 font-semibold hover:bg-surface-variant transition-colors flex items-center gap-2 text-sm shadow-sm">
             <span class="material-symbols-outlined text-[18px]">refresh</span>
             Kalibrasi Ulang
         </button>
+        <button id="btn-shutdown" class="bg-primary text-white rounded-xl py-2.5 px-5 font-semibold hover:bg-black/80 transition-all flex items-center gap-2 text-sm shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
+            Akhiri Sesi & Simpan
+        </button>
+    </div>
+</nav>
+
+<!-- Main Content Canvas (Lebar Penuh Tanpa Sidebar) -->
+<main class="pt-28 pb-12 min-h-screen flex flex-col px-6 md:px-12 max-w-[1700px] w-full mx-auto">
+<header class="mb-6 flex justify-between items-end">
+    <div>
+        <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight">Real-time Diagnostics</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-1">Active Monitoring Session — Mode Presisi (Sync AI)</p>
     </div>
 </header>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
@@ -238,12 +214,6 @@
 </div>
 </div>
 </main>
-
-<!-- Floating End Session Button -->
-<button id="btn-shutdown" class="fixed bottom-8 right-8 bg-[#ff3b30] hover:bg-[#ff453a] text-white rounded-2xl py-4 px-8 font-semibold shadow-[0_10px_30px_rgba(255,59,48,0.3)] transition-all transform hover:scale-105 flex items-center gap-3 z-50">
-    <span class="material-symbols-outlined">power_settings_new</span>
-    Akhiri Sesi & Simpan
-</button>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body></html>

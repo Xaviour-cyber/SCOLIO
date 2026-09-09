@@ -1,37 +1,32 @@
 """
-overlay.py — Modul Gambar OpenCV (Skeleton, Teks Status, UI)
+overlay.py — Modul Gambar OpenCV (Skeleton, Teks Status, Modern Clinical HUD)
 
-Menampilkan overlay skeleton, panel status, gauge sudut,
-timer bar, dan UI kalibrasi di atas feed video.
-
-Semua elemen UI menggunakan ukuran relatif terhadap dimensi frame
-sehingga tampil proporsional di berbagai resolusi dan rasio aspek.
+Menampilkan overlay skeleton modern bergaya cyber-klinis, panel status HUD
+glassmorphism, logo resmi, gauge sudut, dan UI kalibrasi di atas feed video.
 """
 
 import cv2
 import numpy as np
+import os
 from .alert import PostureState
 
 
-# ── Warna (BGR) ──────────────────────────────────────────────
-COLOR_GREEN = (0, 220, 100)
-COLOR_YELLOW = (0, 220, 255)
-COLOR_RED = (0, 60, 255)
+# ── Palet Warna Modern (BGR) ─────────────────────────────────
+COLOR_EMERALD = (80, 215, 60)      # Hijau klinis cerah (Normal)
+COLOR_AMBER = (0, 175, 255)        # Oranye / Kuning peringatan (Warning)
+COLOR_CRIMSON = (50, 50, 240)      # Merah medis (Alert/High Risk)
+COLOR_CYAN = (240, 180, 0)         # Cyan aksen sendi
 COLOR_WHITE = (255, 255, 255)
-COLOR_BLACK = (0, 0, 0)
-COLOR_SKELETON = (255, 200, 100)
-COLOR_JOINT = (0, 180, 255)
-COLOR_PANEL_BG = (30, 30, 30)
-COLOR_ACCENT_BLUE = (200, 160, 40)
+COLOR_GRAY_TEXT = (190, 195, 205)
+COLOR_GLASS_BG = (18, 20, 24)      # Dark Slate Glass
+COLOR_GLASS_BORDER = (55, 60, 72)
+COLOR_BONE = (210, 185, 130)       # Tulang skeleton lembut anti-aliased
 
 # ── Font ─────────────────────────────────────────────────────
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 FONT_BOLD = cv2.FONT_HERSHEY_DUPLEX
 
 # ── Koneksi skeleton untuk overlay ────────────────────────────
-# Index COCO: nose=0, Leye=1, Reye=2, Lear=3, Rear=4,
-#   Lsho=5, Rsho=6, Lelb=7, Relb=8, Lwri=9, Rwri=10,
-#   Lhip=11, Rhip=12, Lkne=13, Rkne=14, Lank=15, Rank=16
 SKELETON_CONNECTIONS = [
     (5, 6),    # bahu kiri → bahu kanan
     (5, 7),    # bahu kiri → siku kiri
@@ -47,8 +42,23 @@ SKELETON_CONNECTIONS = [
     (14, 16),  # lutut kanan → ankle kanan
 ]
 
-# Koneksi tambahan untuk garis tulang belakang (neck → mid_hip)
-# Digambar terpisah dengan warna khusus
+# Cache logo
+_logo_img = None
+_logo_checked = False
+
+
+def _get_logo():
+    global _logo_img, _logo_checked
+    if not _logo_checked:
+        for p in [
+            os.path.join("static", "img", "logo_transparent.png"),
+            os.path.join("static", "img", "logo.png"),
+        ]:
+            if os.path.exists(p):
+                _logo_img = cv2.imread(p, cv2.IMREAD_UNCHANGED)
+                break
+        _logo_checked = True
+    return _logo_img
 
 
 def _scale(value: float, frame_height: int, ref: int = 480) -> int:
@@ -58,22 +68,76 @@ def _scale(value: float, frame_height: int, ref: int = 480) -> int:
 
 def _font_scale(base: float, frame_height: int, ref: int = 480) -> float:
     """Skalakan ukuran font berdasarkan tinggi frame."""
-    return max(0.3, base * frame_height / ref)
+    return max(0.32, base * frame_height / ref)
+
+
+def draw_rounded_rect(img: np.ndarray, pt1: tuple, pt2: tuple, color: tuple,
+                      radius: int = 10, thickness: int = -1) -> np.ndarray:
+    """Menggambar persegi panjang dengan sudut membulat (rounded corners)."""
+    x1, y1 = pt1
+    x2, y2 = pt2
+    w = x2 - x1
+    h = y2 - y1
+    radius = min(radius, w // 2, h // 2)
+
+    if radius <= 0:
+        cv2.rectangle(img, pt1, pt2, color, thickness, cv2.LINE_AA)
+        return img
+
+    if thickness < 0:
+        # Filled rounded rect
+        cv2.rectangle(img, (x1 + radius, y1), (x2 - radius, y2), color, -1)
+        cv2.rectangle(img, (x1, y1 + radius), (x2, y2 - radius), color, -1)
+        cv2.circle(img, (x1 + radius, y1 + radius), radius, color, -1, cv2.LINE_AA)
+        cv2.circle(img, (x2 - radius, y1 + radius), radius, color, -1, cv2.LINE_AA)
+        cv2.circle(img, (x1 + radius, y2 - radius), radius, color, -1, cv2.LINE_AA)
+        cv2.circle(img, (x2 - radius, y2 - radius), radius, color, -1, cv2.LINE_AA)
+    else:
+        # Border rounded rect
+        cv2.line(img, (x1 + radius, y1), (x2 - radius, y1), color, thickness, cv2.LINE_AA)
+        cv2.line(img, (x1 + radius, y2), (x2 - radius, y2), color, thickness, cv2.LINE_AA)
+        cv2.line(img, (x1, y1 + radius), (x1, y2 - radius), color, thickness, cv2.LINE_AA)
+        cv2.line(img, (x2, y1 + radius), (x2, y2 - radius), color, thickness, cv2.LINE_AA)
+        cv2.ellipse(img, (x1 + radius, y1 + radius), (radius, radius), 180, 0, 90, color, thickness, cv2.LINE_AA)
+        cv2.ellipse(img, (x2 - radius, y1 + radius), (radius, radius), 270, 0, 90, color, thickness, cv2.LINE_AA)
+        cv2.ellipse(img, (x2 - radius, y2 - radius), (radius, radius), 0, 0, 90, color, thickness, cv2.LINE_AA)
+        cv2.ellipse(img, (x1 + radius, y2 - radius), (radius, radius), 90, 0, 90, color, thickness, cv2.LINE_AA)
+
+    return img
+
+
+def overlay_alpha(bg: np.ndarray, fg: np.ndarray, x: int, y: int) -> np.ndarray:
+    """Tempel citra transparan (RGBA) di atas background BGR dengan aman."""
+    h_fg, w_fg = fg.shape[:2]
+    h_bg, w_bg = bg.shape[:2]
+
+    if x >= w_bg or y >= h_bg or x + w_fg <= 0 or y + h_fg <= 0:
+        return bg
+
+    x1_bg, y1_bg = max(0, x), max(0, y)
+    x2_bg, y2_bg = min(w_bg, x + w_fg), min(h_bg, y + h_fg)
+
+    x1_fg, y1_fg = max(0, -x), max(0, -y)
+    x2_fg = x1_fg + (x2_bg - x1_bg)
+    y2_fg = y1_fg + (y2_bg - y1_bg)
+
+    fg_crop = fg[y1_fg:y2_fg, x1_fg:x2_fg]
+    bg_crop = bg[y1_bg:y2_bg, x1_bg:x2_bg]
+
+    if fg.shape[2] == 4:
+        alpha = (fg_crop[:, :, 3] / 255.0)[:, :, np.newaxis]
+        fg_bgr = fg_crop[:, :, :3]
+        bg[y1_bg:y2_bg, x1_bg:x2_bg] = (alpha * fg_bgr + (1.0 - alpha) * bg_crop).astype(np.uint8)
+    else:
+        bg[y1_bg:y2_bg, x1_bg:x2_bg] = fg_crop
+
+    return bg
 
 
 def draw_skeleton(frame: np.ndarray, keypoints: dict, confidences: np.ndarray = None,
                   min_conf: float = 0.3) -> np.ndarray:
     """
-    Gambar overlay skeleton pada frame.
-
-    Args:
-        frame: Frame BGR dari OpenCV
-        keypoints: Dictionary dari PoseDetector (harus punya 'all_keypoints')
-        confidences: Array confidence per keypoint (opsional)
-        min_conf: Minimum confidence untuk menggambar
-
-    Returns:
-        Frame dengan overlay skeleton
+    Gambar overlay skeleton bergaya sensor biomekanik modern.
     """
     all_kps = keypoints.get("all_keypoints")
     all_conf = keypoints.get("all_confidences")
@@ -82,46 +146,48 @@ def draw_skeleton(frame: np.ndarray, keypoints: dict, confidences: np.ndarray = 
         return frame
 
     h_frame = frame.shape[0]
-    line_thick = _scale(2, h_frame)
-    spine_thick = _scale(3, h_frame)
+    line_thick = max(1, _scale(2, h_frame))
+    spine_thick = max(2, _scale(3, h_frame))
     joint_r = _scale(5, h_frame)
 
     overlay = frame.copy()
 
-    # Gambar koneksi skeleton
+    # 1. Gambar tulang tubuh (soft anti-aliased)
     for (i, j) in SKELETON_CONNECTIONS:
         if all_conf is not None and (all_conf[i] < min_conf or all_conf[j] < min_conf):
             continue
         pt1 = (int(all_kps[i][0]), int(all_kps[i][1]))
         pt2 = (int(all_kps[j][0]), int(all_kps[j][1]))
-        cv2.line(overlay, pt1, pt2, COLOR_SKELETON, line_thick, cv2.LINE_AA)
+        cv2.line(overlay, pt1, pt2, COLOR_BONE, line_thick, cv2.LINE_AA)
 
-    # Gambar garis tulang belakang (neck → mid_hip) dengan warna khusus
+    # 2. Gambar tulang belakang vertikal (neck → mid_hip)
     neck = keypoints.get("neck")
     mid_hip = keypoints.get("mid_hip")
     if neck and mid_hip:
         pt_neck = (int(neck[0]), int(neck[1]))
         pt_hip = (int(mid_hip[0]), int(mid_hip[1]))
-        cv2.line(overlay, pt_neck, pt_hip, COLOR_GREEN, spine_thick, cv2.LINE_AA)
+        # Spine line bercahaya
+        cv2.line(overlay, pt_neck, pt_hip, COLOR_EMERALD, spine_thick, cv2.LINE_AA)
 
-    # Gambar garis nose → neck
+    # 3. Garis nose → neck
     nose = keypoints.get("nose")
     if nose and neck:
         pt_nose = (int(nose[0]), int(nose[1]))
         pt_neck = (int(neck[0]), int(neck[1]))
-        cv2.line(overlay, pt_nose, pt_neck, COLOR_GREEN, spine_thick, cv2.LINE_AA)
+        cv2.line(overlay, pt_nose, pt_neck, COLOR_EMERALD, spine_thick, cv2.LINE_AA)
 
-    # Gambar titik sendi
+    # 4. Titik Sendi (High-Tech Concentric Dots)
     for i in range(len(all_kps)):
         if all_conf is not None and all_conf[i] < min_conf:
             continue
         pt = (int(all_kps[i][0]), int(all_kps[i][1]))
-        cv2.circle(overlay, pt, joint_r, COLOR_JOINT, -1, cv2.LINE_AA)
-        cv2.circle(overlay, pt, joint_r, COLOR_WHITE, 1, cv2.LINE_AA)
+        # Lingkaran luar putih halus
+        cv2.circle(overlay, pt, joint_r + 1, COLOR_WHITE, 1, cv2.LINE_AA)
+        # Lingkaran dalam warna cyan/amber
+        cv2.circle(overlay, pt, joint_r, COLOR_CYAN, -1, cv2.LINE_AA)
 
-    # Blend overlay dengan frame asli (semi-transparan)
-    cv2.addWeighted(overlay, 0.8, frame, 0.2, 0, frame)
-
+    # Blend transparan
+    cv2.addWeighted(overlay, 0.88, frame, 0.12, 0, frame)
     return frame
 
 
@@ -132,16 +198,6 @@ def draw_status_panel(frame: np.ndarray, state: PostureState,
     """
     Gambar panel status di bagian atas frame.
     Ukuran font dan layout adaptif terhadap dimensi frame.
-
-    Args:
-        frame: Frame BGR
-        state: Status postur saat ini
-        angle: Sudut deviasi relatif (derajat)
-        elapsed: Waktu postur buruk berturut-turut (detik)
-        fps: Frame per second saat ini
-
-    Returns:
-        Frame dengan panel status
     """
     h, w = frame.shape[:2]
     margin = _scale(10, h)
@@ -155,13 +211,13 @@ def draw_status_panel(frame: np.ndarray, state: PostureState,
 
     # Tentukan warna dan teks berdasarkan state
     if state == PostureState.NORMAL:
-        color = COLOR_GREEN
+        color = COLOR_EMERALD
         status_text = "POSTUR: NORMAL"
     elif state == PostureState.WARNING:
-        color = COLOR_YELLOW
+        color = COLOR_AMBER
         status_text = "! PERBAIKI POSTUR"
     elif state == PostureState.ALERT:
-        color = COLOR_RED
+        color = COLOR_CRIMSON
         status_text = "!! PERBAIKI POSTUR!"
     elif state == PostureState.CALIBRATING:
         color = (200, 180, 50)
@@ -172,7 +228,7 @@ def draw_status_panel(frame: np.ndarray, state: PostureState,
 
     # Panel background semi-transparan
     overlay = frame.copy()
-    cv2.rectangle(overlay, (0, 0), (w, panel_height), COLOR_PANEL_BG, -1)
+    cv2.rectangle(overlay, (0, 0), (w, panel_height), COLOR_GLASS_BG, -1)
     cv2.addWeighted(overlay, 0.85, frame, 0.15, 0, frame)
 
     # Garis warna status di bawah panel
@@ -203,14 +259,7 @@ def draw_status_panel(frame: np.ndarray, state: PostureState,
     # ── Baris 2: Sudut (kiri) + Durasi (kanan) ──
     row2_y = row1_y + _scale(25, h)
 
-    # Mode deteksi (jika tersedia)
-    mode_label = ""
-    if detection_mode == "upper_body":
-        mode_label = " [Upper Body]"
-    elif detection_mode == "full_body":
-        mode_label = " [Full Body]"
-
-    angle_text = f"Sudut: {angle:.1f} deg{mode_label}"
+    angle_text = f"Sudut: {angle:.1f} deg"
     cv2.putText(frame, angle_text, (margin, row2_y),
                 FONT, info_scale, COLOR_WHITE, info_thick, cv2.LINE_AA)
 
@@ -220,7 +269,7 @@ def draw_status_panel(frame: np.ndarray, state: PostureState,
         timer_size = cv2.getTextSize(timer_text, FONT, info_scale, info_thick)[0]
         timer_x = w - timer_size[0] - margin
         cv2.putText(frame, timer_text, (timer_x, row2_y),
-                    FONT, info_scale, COLOR_YELLOW, info_thick, cv2.LINE_AA)
+                    FONT, info_scale, COLOR_AMBER, info_thick, cv2.LINE_AA)
 
     return frame
 
@@ -228,13 +277,6 @@ def draw_status_panel(frame: np.ndarray, state: PostureState,
 def draw_timer_bar(frame: np.ndarray, progress: float) -> np.ndarray:
     """
     Gambar progress bar timer postur buruk.
-
-    Args:
-        frame: Frame BGR
-        progress: Nilai 0.0 hingga 1.0
-
-    Returns:
-        Frame dengan progress bar
     """
     if progress <= 0:
         return frame
@@ -246,11 +288,11 @@ def draw_timer_bar(frame: np.ndarray, progress: float) -> np.ndarray:
 
     # Warna gradasi: kuning → merah
     if progress < 0.5:
-        color = COLOR_YELLOW
+        color = COLOR_AMBER
     elif progress < 0.8:
         color = (0, 140, 255)  # oranye
     else:
-        color = COLOR_RED
+        color = COLOR_CRIMSON
 
     cv2.rectangle(frame, (0, panel_height), (bar_width, panel_height + bar_height), color, -1)
 
@@ -260,14 +302,6 @@ def draw_timer_bar(frame: np.ndarray, progress: float) -> np.ndarray:
 def draw_calibration_overlay(frame: np.ndarray, remaining: float) -> np.ndarray:
     """
     Gambar overlay hitung mundur kalibrasi.
-    Panel adaptif terhadap ukuran frame.
-
-    Args:
-        frame: Frame BGR
-        remaining: Sisa waktu kalibrasi (detik)
-
-    Returns:
-        Frame dengan overlay kalibrasi
     """
     h, w = frame.shape[:2]
 
@@ -281,7 +315,7 @@ def draw_calibration_overlay(frame: np.ndarray, remaining: float) -> np.ndarray:
 
     # Semi-transparan background
     overlay = frame.copy()
-    cv2.rectangle(overlay, (x1, y1), (x2, y2), COLOR_PANEL_BG, -1)
+    cv2.rectangle(overlay, (x1, y1), (x2, y2), COLOR_GLASS_BG, -1)
     cv2.addWeighted(overlay, 0.9, frame, 0.1, 0, frame)
 
     # Border
@@ -327,20 +361,13 @@ def draw_calibration_overlay(frame: np.ndarray, remaining: float) -> np.ndarray:
     return frame
 
 
-def draw_controls_hint(frame: np.ndarray, render_mode: str = "ASYNC (Mulus)") -> np.ndarray:
+def draw_controls_hint(frame: np.ndarray, render_mode: str = "SYNC (Presisi)") -> np.ndarray:
     """
     Gambar petunjuk kontrol di bagian bawah frame.
-
-    Args:
-        frame: Frame BGR
-        render_mode: Label mode render aktif ("ASYNC (Mulus)" atau "SYNC (Presisi)")
-
-    Returns:
-        Frame dengan petunjuk kontrol
     """
     h, w = frame.shape[:2]
 
-    hint = f"Q: Keluar  |  R: Kalibrasi Ulang  |  M: Mode [{render_mode}]"
+    hint = "Q: Keluar  |  R: Kalibrasi Ulang"
     hint_scale = _font_scale(0.35, h)
     hint_thick = max(1, _scale(1, h))
     bar_h = _scale(25, h)
@@ -349,11 +376,10 @@ def draw_controls_hint(frame: np.ndarray, render_mode: str = "ASYNC (Mulus)") ->
 
     # Background semi-transparan
     overlay = frame.copy()
-    cv2.rectangle(overlay, (0, h - bar_h), (w, h), COLOR_PANEL_BG, -1)
+    cv2.rectangle(overlay, (0, h - bar_h), (w, h), COLOR_GLASS_BG, -1)
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
 
     cv2.putText(frame, hint, ((w - ts[0]) // 2, h - _scale(8, h)),
                 FONT, hint_scale, (180, 180, 180), hint_thick, cv2.LINE_AA)
 
     return frame
-

@@ -38,7 +38,7 @@ global_state = {
     "timer_progress": 0.0,
     "detection_mode": "full_body",
     "is_detecting": False,
-    "sync_mode": False
+    "sync_mode": True
 }
 
 class InferenceThread:
@@ -100,7 +100,7 @@ cap = None
 is_video_file = False
 video_fps = 30.0
 system_initialized = False
-sync_mode = False
+sync_mode = True
 
 def init_system(student_id, screen_time):
     global camera, cap, is_video_file, logger, video_fps, system_initialized

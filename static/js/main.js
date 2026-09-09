@@ -37,15 +37,17 @@ function updateUI(data) {
     // Update FPS
     UI.valFps.innerText = data.fps.toFixed(0);
 
-    // Update Sync state
-    if (data.sync_mode) {
-        UI.syncIcon.innerText = "check_circle";
-        UI.syncLabel.innerText = "Mode: Sync (Presisi)";
-        UI.btnSync.classList.replace('text-primary', 'text-emerald-600');
-    } else {
-        UI.syncIcon.innerText = "speed";
-        UI.syncLabel.innerText = "Mode: Async (Cepat)";
-        UI.btnSync.classList.replace('text-emerald-600', 'text-primary');
+    // Update Sync state (jika tombol ada di DOM)
+    if (UI.btnSync && UI.syncIcon && UI.syncLabel) {
+        if (data.sync_mode) {
+            UI.syncIcon.innerText = "check_circle";
+            UI.syncLabel.innerText = "Mode: Sync (Presisi)";
+            UI.btnSync.classList.replace('text-primary', 'text-emerald-600');
+        } else {
+            UI.syncIcon.innerText = "speed";
+            UI.syncLabel.innerText = "Mode: Async (Cepat)";
+            UI.btnSync.classList.replace('text-emerald-600', 'text-primary');
+        }
     }
 
     if (data.state === "CALIBRATING") {

@@ -57,13 +57,10 @@
 
     <!-- Clean Apple-style Container -->
     <div class="apple-card p-10 md:p-12 w-full max-w-[480px] transition-all">
-        <div class="text-center mb-10">
-            <!-- Minimalist Logo -->
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-sm border border-gray-100 mb-6 text-apple-text">
-                <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">medical_services</span>
-            </div>
-            <h1 class="text-[32px] leading-tight font-bold tracking-tight text-apple-text mb-2">Scolio-Scan.</h1>
-            <p class="text-apple-gray text-[17px] tracking-tight">Clinical AI Posture Assessment.</p>
+        <div class="text-center mb-8">
+            <!-- Official Logo -->
+            <img src="{{ url_for('static', filename='img/logo_transparent.png') }}" alt="Scolio-Scan" class="h-16 w-auto mx-auto mb-3 object-contain">
+            <p class="text-apple-gray text-[16px] tracking-tight">Clinical AI Posture Assessment Suite</p>
         </div>
 
         <form id="start-form" class="space-y-6">
