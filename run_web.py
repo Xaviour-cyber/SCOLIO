@@ -18,7 +18,7 @@ from src.logger import SessionLogger
 from src.overlay import draw_skeleton
 
 # ── Konfigurasi ──────────────────────────────────────────────
-CAMERA_SOURCE = "VID_20260808_094701.mp4"
+CAMERA_SOURCE = 0
 if isinstance(CAMERA_SOURCE, str) and not CAMERA_SOURCE.startswith("http") and not os.path.exists(CAMERA_SOURCE):
     print(f"[WARNING] Video {CAMERA_SOURCE} tidak ditemukan. Fallback ke Webcam (0).")
     CAMERA_SOURCE = 0
@@ -116,8 +116,7 @@ def init_system(student_id, screen_time):
     if is_video_file:
         cap = cv2.VideoCapture(CAMERA_SOURCE)
         if not cap.isOpened():
-            print("Gagal membuka video!")
-            sys.exit(1)
+            raise RuntimeError("Gagal membuka video!")
         video_fps = cap.get(cv2.CAP_PROP_FPS)
         if video_fps <= 0: video_fps = 30.0
     else:
