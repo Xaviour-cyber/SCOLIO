@@ -13,7 +13,7 @@ __pycache__/
 
 # YOLO Model Weights & Runs
 *.pt
-yolo26n-pose.pt
+!yolo26n-pose.pt
 runs/
 
 # IDE & OS Files
@@ -41,4 +41,3 @@ VID_*.mp4
 !test/*.png
 *generate_chart.py
 !logs/*.png
-
