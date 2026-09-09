@@ -38,6 +38,9 @@ WINDOW_NAME = "Scolio-Scan | Monitoring Postur"
 # Untuk webcam biasa, ganti ke: CAMERA_SOURCE = 0
 # Untuk video file, ganti ke: CAMERA_SOURCE = "video.mp4"
 CAMERA_SOURCE = "VID_20260808_094701.mp4"
+if isinstance(CAMERA_SOURCE, str) and not CAMERA_SOURCE.startswith("http") and not os.path.exists(CAMERA_SOURCE):
+    print(f"[WARNING] Video {CAMERA_SOURCE} tidak ditemukan. Fallback ke Webcam (0).")
+    CAMERA_SOURCE = 0
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 MAX_DISPLAY_HEIGHT = 720     # Batas tinggi tampilan agar muat di layar

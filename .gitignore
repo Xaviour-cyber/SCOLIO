@@ -38,4 +38,5 @@ VID_*.mp4
 !README.md
 
 *.png
+!static/img/*.png
 generate_chart.py
