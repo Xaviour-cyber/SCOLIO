@@ -37,6 +37,8 @@ VID_*.mp4
 *.md
 !README.md
 
-*.png
-!static/img/*.png
-generate_chart.py
+# Image
+!test/*.png
+*generate_chart.py
+!logs/*.png
+
