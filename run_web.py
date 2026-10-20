@@ -93,8 +93,8 @@ class InferenceThread:
                 ai_frame_count = 0
                 ai_fps_timer = now
 
-# Inisialisasi global AI (Biar loadingnya cepat pas app dibuka)
-detector = PoseDetector(model_path="yolo26n-pose.pt", confidence=0.5)
+# Inisialisasi global AI (Otomatis prioritaskan ONNX Runtime jika tersedia)
+detector = PoseDetector(confidence=0.5)
 ai_thread = InferenceThread(detector)
 alert_system = PostureAlertSystem(ANGLE_THRESHOLD, ALERT_DURATION, CALIBRATION_DURATION)
 logger = None

@@ -9,6 +9,7 @@ Mendukung dua mode deteksi:
   - UPPER_BODY : Hanya kepala + bahu terdeteksi (pinggul tidak terlihat)
 """
 
+import os
 from ultralytics import YOLO
 import numpy as np
 
@@ -45,16 +46,30 @@ MIN_CONFIDENCE = 0.5
 
 
 class PoseDetector:
-    """Detektor pose menggunakan YOLOv26-Pose Nano."""
+    """Detektor pose menggunakan YOLOv26-Pose (ONNX Runtime & PyTorch)."""
 
-    def __init__(self, model_path: str = "yolo26n-pose.pt", confidence: float = 0.5):
+    def __init__(self, model_path: str | None = None, confidence: float = 0.5):
         """
         Inisialisasi detektor pose.
 
+        Secara default akan memprioritaskan format ONNX ('yolo26n-pose.onnx')
+        karena lebih cepat dan hemat memori pada CPU, dengan auto-fallback ke
+        model PyTorch ('yolo26n-pose.pt').
+
         Args:
-            model_path: Path ke file model YOLO pose (.pt)
+            model_path: Path ke file model pose (.onnx atau .pt). Jika None, auto-select.
             confidence: Threshold confidence minimum untuk deteksi
         """
+        if model_path is None or model_path == "yolo26n-pose.pt":
+            # Prioritaskan ONNX jika tersedia
+            if os.path.exists("yolo26n-pose.onnx"):
+                model_path = "yolo26n-pose.onnx"
+            else:
+                model_path = "yolo26n-pose.pt"
+
+        self.model_path = model_path
+        self.is_onnx = str(model_path).lower().endswith(".onnx")
+        self.engine_name = "ONNX Runtime" if self.is_onnx else "PyTorch"
         self.model = YOLO(model_path)
         self.confidence = confidence
 

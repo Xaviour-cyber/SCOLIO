@@ -37,9 +37,11 @@ WINDOW_NAME = "Scolio-Scan | Monitoring Postur"
 # Ganti IP sesuai yang tampil di app DroidCam HP kamu
 # Untuk webcam biasa, ganti ke: CAMERA_SOURCE = 0
 # Untuk video file, ganti ke: CAMERA_SOURCE = "video.mp4"
-CAMERA_SOURCE = "VID_20260808_094701.mp4"
+CAMERA_SOURCE = "VID_20260623_210838.mp4" #Webcam Internal
+#camera source 2 = http://[IP_ADDRESS]/video
+#Alternative for the camera source 3 =  http://192.168.1.105
 if isinstance(CAMERA_SOURCE, str) and not CAMERA_SOURCE.startswith("http") and not os.path.exists(CAMERA_SOURCE):
-    print(f"[WARNING] Video {CAMERA_SOURCE} tidak ditemukan. Fallback ke Webcam (0).")
+    print(f"[WARNING] Video '{CAMERA_SOURCE}' tidak ditemukan. Otomatis beralih ke Webcam (0).")
     CAMERA_SOURCE = 0
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
@@ -175,9 +177,9 @@ def main():
         sys.exit(1)
 
     # ── Inisialisasi Detektor & AI Thread ────────────────────
-    print("[INFO] Memuat model YOLOv26-Pose Nano...")
-    detector = PoseDetector(model_path="yolo26n-pose.pt", confidence=0.5)
-    print("[OK] Model berhasil dimuat.")
+    print("[INFO] Memuat model YOLOv26-Pose...")
+    detector = PoseDetector(confidence=0.5)
+    print(f"[OK] Model berhasil dimuat via {detector.engine_name} ({detector.model_path}).")
 
     print("[INFO] Memulai AI Inference Thread...")
     ai_thread = InferenceThread(detector)
@@ -202,6 +204,7 @@ def main():
     fps_frame_count = 0
     last_keypoints = None
     sync_mode = True           # False = Async (mulus), True = Sync (presisi)
+    inference_latencies = []   # Catat latensi inferensi untuk laporan performa sesi
 
     # ── Window OpenCV ────────────────────────────────────────
     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
@@ -236,6 +239,7 @@ def main():
                 frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
 
             # ── Deteksi Pose (Mode tergantung sync_mode) ──────
+            t_infer_0 = time.perf_counter()
             if sync_mode:
                 # SYNC MODE: Proses langsung di main thread
                 # Skeleton 100% akurat tapi video jadi lambat
@@ -250,6 +254,9 @@ def main():
                 keypoints, ai_fps = ai_thread.get_result()
                 if keypoints is not None:
                     last_keypoints = keypoints
+            
+            t_infer_1 = time.perf_counter()
+            inference_latencies.append((t_infer_1 - t_infer_0) * 1000.0)
 
             # ── Proses keypoints & gambar overlay ────────────
             if last_keypoints is not None:
@@ -337,6 +344,20 @@ def main():
 
         # ── Generate laporan & grafik otomatis ────────────
         logger.close_and_report()
+
+        # ── Ringkasan Kinerja Komputasi Sesi ──────────────
+        if inference_latencies:
+            lat_arr = np.array(inference_latencies)
+            avg_lat = float(np.mean(lat_arr))
+            med_lat = float(np.median(lat_arr))
+            p95_lat = float(np.percentile(lat_arr, 95))
+            calc_fps = 1000.0 / avg_lat if avg_lat > 0 else 0.0
+            print("-" * 50)
+            print(f"[PERFORMA SESI] Engine AI : {detector.engine_name} ({os.path.basename(detector.model_path)})")
+            print(f"                Total Frame  : {len(lat_arr)} frame diproses")
+            print(f"                Rata-rata    : {avg_lat:.1f} ms (~{calc_fps:.2f} FPS)")
+            print(f"                Median / P95 : {med_lat:.1f} ms / {p95_lat:.1f} ms")
+            print("-" * 50)
 
         print("[OK] Scolio-Scan ditutup dengan bersih.")
 

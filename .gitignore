@@ -13,7 +13,9 @@ __pycache__/
 
 # YOLO Model Weights & Runs
 *.pt
+*.onnx
 !yolo26n-pose.pt
+!yolo26n-pose.onnx
 runs/
 
 # IDE & OS Files
@@ -36,6 +38,8 @@ VID_*.mp4
 # Markdown & Dokumen Makalah
 *.md
 !README.md
+!laporan_*.md
+!logs/eval_*.md
 
 # Image
 !test/*.png
