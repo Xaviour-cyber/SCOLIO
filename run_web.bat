@@ -4,14 +4,16 @@ echo.
 
 set PYTHON_EXE=
 
-REM Cek venv khusus (di luar OneDrive untuk laptop Anda)
-if exist "C:\Users\think\scolio-venv\Scripts\python.exe" (
-    set PYTHON_EXE="C:\Users\think\scolio-venv\Scripts\python.exe"
-    echo [INFO] Menggunakan venv khusus: C:\Users\think\scolio-venv
+REM Cek berbagai venv
+if exist ".venv312\Scripts\python.exe" (
+    set PYTHON_EXE=".venv312\Scripts\python.exe"
+    echo [INFO] Menggunakan venv: .venv312
 ) else if exist ".venv\Scripts\python.exe" (
-    REM Cek venv lokal (untuk laptop partner)
     set PYTHON_EXE=".venv\Scripts\python.exe"
     echo [INFO] Menggunakan venv lokal: .venv
+) else if exist "C:\Users\think\scolio-venv\Scripts\python.exe" (
+    set PYTHON_EXE="C:\Users\think\scolio-venv\Scripts\python.exe"
+    echo [INFO] Menggunakan venv khusus: C:\Users\think\scolio-venv
 ) else (
     echo [ERROR] Virtual environment belum di-setup!
     echo         Jalankan setup.bat terlebih dahulu.
