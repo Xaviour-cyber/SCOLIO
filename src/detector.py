@@ -61,8 +61,18 @@ class PoseDetector:
             confidence: Threshold confidence minimum untuk deteksi
         """
         if model_path is None or model_path == "yolo26n-pose.pt":
-            # Prioritaskan ONNX jika tersedia
+            # Prioritaskan ONNX jika file ada DAN onnxruntime terinstall
+            onnx_available = False
             if os.path.exists("yolo26n-pose.onnx"):
+                try:
+                    import onnxruntime  # noqa: F401
+                    onnx_available = True
+                except ImportError:
+                    onnx_available = False
+                    print("[WARN] 'yolo26n-pose.onnx' ditemukan, tetapi library 'onnxruntime' belum terinstall.")
+                    print("[INFO] Fallback otomatis ke model PyTorch ('yolo26n-pose.pt').")
+
+            if onnx_available:
                 model_path = "yolo26n-pose.onnx"
             else:
                 model_path = "yolo26n-pose.pt"
@@ -70,7 +80,20 @@ class PoseDetector:
         self.model_path = model_path
         self.is_onnx = str(model_path).lower().endswith(".onnx")
         self.engine_name = "ONNX Runtime" if self.is_onnx else "PyTorch"
-        self.model = YOLO(model_path)
+
+        try:
+            self.model = YOLO(model_path)
+        except Exception as e:
+            if self.is_onnx and os.path.exists("yolo26n-pose.pt"):
+                print(f"[WARN] Gagal memuat model ONNX: {e}")
+                print("[INFO] Fallback otomatis ke PyTorch ('yolo26n-pose.pt')...")
+                self.model_path = "yolo26n-pose.pt"
+                self.is_onnx = False
+                self.engine_name = "PyTorch"
+                self.model = YOLO("yolo26n-pose.pt")
+            else:
+                raise e
+
         self.confidence = confidence
 
     def detect(self, frame: np.ndarray) -> dict | None:

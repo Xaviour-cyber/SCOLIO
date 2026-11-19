@@ -282,7 +282,7 @@ def cleanup_system():
     if cap is not None:
         cap.release()
     if camera is not None:
-        camera.stop()
+        camera.release()
     if ai_thread is not None:
         ai_thread.stop()
 
