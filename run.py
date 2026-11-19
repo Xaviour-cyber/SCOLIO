@@ -17,6 +17,7 @@ import sys
 import os
 import threading
 import copy
+import numpy as np
 
 from src.camera import ThreadedCamera
 from src.detector import PoseDetector
